@@ -80,57 +80,69 @@ def check_sub(call):
     else:
         bot.answer_callback_query(call.id, "❌ Ты ещё не подписался!", show_alert=True)
 
-# --- кнопки, которые просят ввод данных ---
+# --- кнопки, которые просят ввод данных (с кнопкой отмены) ---
+
+def ask_input(chat_id, user_id, key, prompt):
+    waiting[user_id] = key
+    kb = types.InlineKeyboardMarkup()
+    kb.add(types.InlineKeyboardButton(text="❌ Отменить", callback_data="cancel"))
+    bot.send_message(chat_id, prompt, reply_markup=kb)
 
 @bot.callback_query_handler(func=lambda call: call.data == "tg")
 def tg(call):
-    waiting[call.from_user.id] = "tg"
-    bot.send_message(call.message.chat.id, "Введите Telegram ID или юзер @username:")
+    ask_input(call.message.chat.id, call.from_user.id, "tg", "Введите Telegram ID или юзер @username:")
 
 @bot.callback_query_handler(func=lambda call: call.data == "phone")
 def phone(call):
-    waiting[call.from_user.id] = "phone"
-    bot.send_message(call.message.chat.id, "Введите номер телефона:")
-
-@bot.callback_query_handler(func=lambda call: call.data == "troll")
-def troll(call):
-    bot.answer_callback_query(call.id, "💎 Оплатите подписку!", show_alert=True)
+    ask_input(call.message.chat.id, call.from_user.id, "phone", "Введите номер телефона:")
 
 @bot.callback_query_handler(func=lambda call: call.data == "snos")
 def snos(call):
-    waiting[call.from_user.id] = "snos"
-    bot.send_message(call.message.chat.id, "Напишите юзер или ID жертвы:")
+    ask_input(call.message.chat.id, call.from_user.id, "snos", "Напишите юзер или ID жертвы:")
 
 @bot.callback_query_handler(func=lambda call: call.data == "tiktok")
 def tiktok(call):
-    waiting[call.from_user.id] = "tiktok"
-    bot.send_message(call.message.chat.id, "Напишите юзер жертвы в TikTok:")
+    ask_input(call.message.chat.id, call.from_user.id, "tiktok", "Напишите юзер жертвы в TikTok:")
 
 @bot.callback_query_handler(func=lambda call: call.data == "mail")
 def mail(call):
-    waiting[call.from_user.id] = "mail"
-    bot.send_message(call.message.chat.id, "Введите почту:")
-
-@bot.callback_query_handler(func=lambda call: call.data == "rat")
-def rat(call):
-    bot.answer_callback_query(call.id, "💎 Оплатите подписку!", show_alert=True)
+    ask_input(call.message.chat.id, call.from_user.id, "mail", "Введите почту:")
 
 @bot.callback_query_handler(func=lambda call: call.data == "spam")
 def spam(call):
-    waiting[call.from_user.id] = "spam"
-    bot.send_message(call.message.chat.id, "Введите почту:")
+    ask_input(call.message.chat.id, call.from_user.id, "spam", "Введите почту:")
+
+# --- кнопки, которые сразу отправляют на оплату ---
+
+def send_pay(chat_id):
+    kb = types.InlineKeyboardMarkup()
+    kb.add(types.InlineKeyboardButton(text="💎 Оплатить 3 TON", callback_data="pay"))
+    kb.add(types.InlineKeyboardButton(text="❌ Отменить", callback_data="cancel"))
+    bot.send_message(
+        chat_id,
+        "💎 Оплатите подписку для получения результата.",
+        reply_markup=kb
+    )
+
+@bot.callback_query_handler(func=lambda call: call.data == "troll")
+def troll(call):
+    send_pay(call.message.chat.id)
+
+@bot.callback_query_handler(func=lambda call: call.data == "rat")
+def rat(call):
+    send_pay(call.message.chat.id)
 
 @bot.callback_query_handler(func=lambda call: call.data == "dossier")
 def dossier(call):
-    bot.answer_callback_query(call.id, "💎 Оплатите подписку!", show_alert=True)
+    send_pay(call.message.chat.id)
 
 @bot.callback_query_handler(func=lambda call: call.data == "dossier_parents")
 def dossier_parents(call):
-    bot.answer_callback_query(call.id, "💎 Оплатите подписку!", show_alert=True)
+    send_pay(call.message.chat.id)
 
 @bot.callback_query_handler(func=lambda call: call.data == "svo")
 def svo(call):
-    bot.answer_callback_query(call.id, "💎 Оплатите подписку!", show_alert=True)
+    send_pay(call.message.chat.id)
 
 @bot.callback_query_handler(func=lambda call: call.data == "trial")
 def trial(call):
@@ -140,6 +152,13 @@ def trial(call):
         "Когда увидите такие же комментарии — ставьте лайки.\n"
         "Пруфы кидать в бота."
     )
+
+# --- отмена ---
+
+@bot.callback_query_handler(func=lambda call: call.data == "cancel")
+def cancel(call):
+    waiting.pop(call.from_user.id, None)
+    bot.delete_message(call.message.chat.id, call.message.message_id)
 
 # --- обработка введённого текста ---
 
@@ -151,6 +170,7 @@ def handle_input(message):
 
     kb = types.InlineKeyboardMarkup()
     kb.add(types.InlineKeyboardButton(text="💎 Оплатить 3 TON", callback_data="pay"))
+    kb.add(types.InlineKeyboardButton(text="❌ Отменить", callback_data="cancel"))
     bot.send_message(
         message.chat.id,
         "💎 Оплатите подписку для получения результата.",
@@ -169,6 +189,10 @@ def pay(call):
     kb.add(types.InlineKeyboardButton(
         text="✅ Я оплатил",
         callback_data="check_payment"
+    ))
+    kb.add(types.InlineKeyboardButton(
+        text="❌ Отменить",
+        callback_data="cancel"
     ))
     bot.edit_message_text(
         f"💎 Оплата доступа\n\n"

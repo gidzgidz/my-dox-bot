@@ -19,7 +19,7 @@ def main_menu():
         types.InlineKeyboardButton(text="Закинуть жертве RAT-ку🔊", callback_data="paywall"),
         types.InlineKeyboardButton(text="Спам почты✉️", callback_data="paywall"),
         types.InlineKeyboardButton(text="Полное досье жертвы📝", callback_data="paywall"),
-        types.InlineKeyboardButton(text="Полное досье родителей жертвы и компромата📝🤫", callback_data="paywall"),
+        types.InlineKeyboardButton(text="Полное досье родителей жертвы📝", callback_data="paywall"),
  
 types.InlineKeyboardButton(text="Отправить отца жертвы на СВО🎖️", callback_data="paywall")
    )

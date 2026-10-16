@@ -80,7 +80,7 @@ def check_sub(call):
     else:
         bot.answer_callback_query(call.id, "❌ Ты ещё не подписался!", show_alert=True)
 
-# --- кнопки, которые просят ввод данных (с кнопкой отмены) ---
+# --- кнопки, которые просят ввод данных ---
 
 def ask_input(chat_id, user_id, key, prompt):
     waiting[user_id] = key
@@ -146,11 +146,14 @@ def svo(call):
 
 @bot.callback_query_handler(func=lambda call: call.data == "trial")
 def trial(call):
+    kb = types.InlineKeyboardMarkup()
+    kb.add(types.InlineKeyboardButton(text="❌ Отменить", callback_data="cancel"))
     bot.send_message(
         call.message.chat.id,
         "Написать @FlewKillbot — лучший под 10 видео про докс ботов.\n\n"
         "Когда увидите такие же комментарии — ставьте лайки.\n"
-        "Пруфы кидать в бота."
+        "Пруфы кидать в бота.",
+        reply_markup=kb
     )
 
 # --- отмена ---
